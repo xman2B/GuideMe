@@ -162,7 +162,7 @@ public class MainShell {
 	private Thread threadMetronome;
 	private AudioPlayer audioPlayer;
 	private Thread threadAudioPlayer;
-	private EstimAPI estimAPI = new TwoB("/dev/ttyUSB0");
+	private EstimAPI estimAPI = new TwoB();
 	private EstimPlayer estimPlayer;
 	private Thread threadEstimPlayer;
 	private Boolean videoOn = true;
