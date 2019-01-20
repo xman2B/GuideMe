@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Display;
 import org.guideme.guideme.model.Audio;
 import org.guideme.guideme.model.Button;
 import org.guideme.guideme.model.Delay;
+import org.guideme.guideme.model.Estim;
 import org.guideme.guideme.model.Metronome;
 import org.guideme.guideme.model.Timer;
 import org.guideme.guideme.model.Video;
@@ -28,6 +29,8 @@ public class OverRide {
 	private Webcam webcam = null;
 	/** @exclude */
 	private Audio audio = null;
+	/** @exclude */
+	private Estim estim = null;
 	/** @exclude */
 	private Metronome metronome = null;
 	/** @exclude */
@@ -587,6 +590,37 @@ public class OverRide {
 		this.audio = new Audio(id, startAt, stopAt, target, "", "", set, unSet, repeat, jscript, "", "", "", volume);
 	}
 
+	/** @exclude */
+	public Estim getEstim() {
+		return estim;
+	}
+	
+	/**
+	 * Play an audio file
+	 * 
+	 * id :
+	 *   File must be in the media directory (or subdirectory)
+	 * 	 Wild cards can be used
+	 * 	 e.g. kate/home*.*  would select an audio file in the sub directory kate with a file name starting with home
+	 * 
+	 * startAt :  to start 90 seconds in 00:01:30
+	 * stopAt :  to stop at 95 seconds into the video 00:01:35
+	 * 
+	 * 
+	 * @param id the file name for the audio
+	 * @param startAt the start time for the audio hh:mm:ss
+	 * @param stopAt the stop time for audio hh:mm:ss 
+	 * @param target the page to go to when the audio stops
+	 * @param set the flags to set when the audio ends
+	 * @param unSet the flags to clear when the audio ends
+	 * @param repeat the number of times to repeat the audio
+	 * @param jscript the Java Script function to run when the audio stops
+	 * @param command the command so send to the 2B
+	 */
+	public void setEstim(String id, String startAt, String stopAt, String target, String set, String unSet, String repeat, String jscript, String command) {
+		this.estim = new Estim(id, startAt, stopAt, target, "", "", set, unSet, repeat, jscript, "", "", "", command);
+	}
+	
 	/** @exclude */
 	public Metronome getMetronome() {
 		return metronome;

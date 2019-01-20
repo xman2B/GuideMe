@@ -187,6 +187,8 @@ public class PreferenceShell {
 			//Image Scale Factor (hack to cope with some screens / graphic cards not displaying pictures the same size
 			AddTextField(grpApp, displayText.getString("FileAppPrefImageScaleFactor"), appWidgets.get("AppThumbnailSizeNumCtrl"), appWidgets.get("AppThumbnailSizeNumCtrl"), String.valueOf(myAppSettings.getImgOffset()), "AppImgOffset", true);
 
+			//EstimPath
+			//AddTextField(grpApp, displayText.getString("FileAppPrefImageScaleFactor"), appWidgets.get("AppThumbnailSizeNumCtrl"), appWidgets.get("AppThumbnailSizeNumCtrl"), String.valueOf(myAppSettings.getImgOffset()), "AppImgOffset", true);
 
 			SquareButton btnCancel = new SquareButton(composite, SWT.PUSH);
 			btnCancel.setText(displayText.getString("ButtonCancel"));

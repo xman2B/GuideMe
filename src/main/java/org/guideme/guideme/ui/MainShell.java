@@ -85,6 +85,8 @@ import org.mozilla.javascript.ContextFactory;
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
 
+import devices.TwoB.TwoB;
+import estimAPI.EstimAPI;
 import uk.co.caprica.vlcj.binding.LibVlc;
 import uk.co.caprica.vlcj.binding.internal.libvlc_instance_t;
 import uk.co.caprica.vlcj.player.MediaPlayer;
@@ -160,6 +162,9 @@ public class MainShell {
 	private Thread threadMetronome;
 	private AudioPlayer audioPlayer;
 	private Thread threadAudioPlayer;
+	private EstimAPI estimAPI = new TwoB("/dev/ttyUSB0");
+	private EstimPlayer estimPlayer;
+	private Thread threadEstimPlayer;
 	private Boolean videoOn = true;
 	private Boolean webcamOn = true;
 	private String style = "";
@@ -227,7 +232,7 @@ public class MainShell {
 
 			// array to hold the various flags
 			guideSettings.setFlags("");
-			
+
 			//width and height of the sizable containers on the screen
 			intWeights1 = appSettings.getSash1Weights();
 			intWeights2 = appSettings.getSash2Weights();
@@ -261,7 +266,7 @@ public class MainShell {
 			//mouseListen = new shellMouseMoveListener();
 			//myDisplay.addFilter(SWT.MouseMove, mouseListen);
 			int mainMonitor = appSettings.getMainMonitor();
-			
+
 			clientArea2 = null;
 			multiMonitor = appSettings.isMultiMonitor();
 			Monitor monitors[] = display.getMonitors();
@@ -288,11 +293,11 @@ public class MainShell {
 					multiMonitor = false;
 				}
 			}
-			
+
 			//debug shell
 			debugShell = DebugShell.getDebugShell();
 			debugShell.createShell(myDisplay, this);
-			
+
 			//get primary monitor and its size
 			clientArea = monitors[0].getClientArea();
 			if (mainMonitor == 1) {
@@ -320,7 +325,7 @@ public class MainShell {
 			FormLayout layout = new FormLayout();
 			shell.setLayout(layout);
 
-			
+
 			Font sysFont = display.getSystemFont();
 			FontData[] fD = sysFont.getFontData();
 			fD[0].setHeight(MintFontSize);
@@ -351,12 +356,12 @@ public class MainShell {
 			} else {
 				leftFrame = new Composite(shell,  SWT.SHADOW_NONE);
 			}
-			
+
 			leftFrame.setBackground(colourBlack);
 			FormLayout layoutLF = new FormLayout();
 			leftFrame.setLayout(layoutLF);
-			
-			
+
+
 			mediaPanel = new Composite(leftFrame, SWT.EMBEDDED);
 			FormLayout  layout3 = new FormLayout();
 			mediaPanel.setLayout(layout3);
@@ -370,35 +375,35 @@ public class MainShell {
 
 			//defaultStyle
 			try {
-		        defaultStyle = comonFunctions.readFile("./defaultCSS.TXT", StandardCharsets.UTF_8);
-		        defaultStyle = defaultStyle.replace("MintHtmlFontSize", String.valueOf(MintHtmlFontSize)); 
+				defaultStyle = comonFunctions.readFile("./defaultCSS.TXT", StandardCharsets.UTF_8);
+				defaultStyle = defaultStyle.replace("MintHtmlFontSize", String.valueOf(MintHtmlFontSize)); 
 			}
 			catch (Exception ex2) {
 				defaultStyle = "";
 				logger.error("Load defaultCSS.txt error:" + ex2.getLocalizedMessage(), ex2);
 			}
-	        
-	        
+
+
 			style = defaultStyle;
 
 			//default HTML
 			try {
-		        rightHTML = comonFunctions.readFile("DefaultRightHtml.txt", StandardCharsets.UTF_8);
+				rightHTML = comonFunctions.readFile("DefaultRightHtml.txt", StandardCharsets.UTF_8);
 			}
 			catch (Exception ex2) {
 				rightHTML = "";
 				logger.error("Load DefaultRightHtml.txt error:" + ex2.getLocalizedMessage(), ex2);
 			}
-			
+
 			try {
-		        leftHTML = comonFunctions.readFile("DefaultLeftHtml.txt", StandardCharsets.UTF_8);
+				leftHTML = comonFunctions.readFile("DefaultLeftHtml.txt", StandardCharsets.UTF_8);
 			}
 			catch (Exception ex2) {
 				leftHTML = "";
 				logger.error("Load DefaultLeftHtml.txt error:" + ex2.getLocalizedMessage(), ex2);
 			}
-			
-			
+
+
 			String strHtml = rightHTML.replace("BodyContent", "");
 			strHtml = strHtml.replace("DefaultStyle", defaultStyle);
 			imageLabel = new Browser(leftFrame, 0);
@@ -444,27 +449,27 @@ public class MainShell {
 					/*
 					videoFrame = SWT_AWT.new_Frame(mediaPanel);         
 					videoSurfaceCanvas = new Canvas();
-		
+
 					videoSurfaceCanvas.setBackground(java.awt.Color.black);
 					videoFrame.add(videoSurfaceCanvas);
-		
+
 					mediaPlayerFactory = new MediaPlayerFactory("--no-video-title-show");
 					mediaPlayer = mediaPlayerFactory.newEmbeddedMediaPlayer();
-		
+
 					videoSurface = mediaPlayerFactory.newVideoSurface(videoSurfaceCanvas);
-	
+
 					mediaPlayer.setVideoSurface(videoSurface);
-	
+
 					mediaPlayer.addMediaPlayerEventListener(new MediaListener());
-					*/
-					
+					 */
+
 					LibVlc libvlc = LibVlc.INSTANCE;
 					libvlc_instance_t instance = libvlc.libvlc_new(0, null);
-					
+
 					mediaPlayer = new SwtEmbeddedMediaPlayer(libvlc, instance);
 					mediaPlayer.setVideoSurface(new CompositeVideoSurface(mediaPanel, getVideoSurfaceAdapter()));
 					mediaPlayer.addMediaPlayerEventListener(new MediaListener());
-					
+
 				}
 				catch (Exception vlcex) {
 					logger.error("VLC intialisation error " + vlcex.getLocalizedMessage(), vlcex);
@@ -476,17 +481,17 @@ public class MainShell {
 			{
 				try {
 					Frame frame = SWT_AWT.new_Frame(webcamPanel);
-	
+
 					webcamRoot = new JRootPane();
 					frame.add(webcamRoot);
-	
+
 				}
 				catch (Exception webcamex) {
 					logger.error("Webcam intialisation error " + webcamex.getLocalizedMessage(), webcamex);
 				}
-				
+
 			}
-			
+
 			//Set the layout and how it responds to screen resize
 			FormData lblLeftFormData = new FormData();
 			lblLeftFormData.top = new FormAttachment(0,0);
@@ -538,7 +543,7 @@ public class MainShell {
 				SashFormData2.bottom = new FormAttachment(100,0);
 				sashform2.setLayoutData(SashFormData2);
 			}
-			
+
 
 			FormData btnCompFormData = new FormData();
 			btnCompFormData.top = new FormAttachment(sashform2,0);
@@ -553,21 +558,21 @@ public class MainShell {
 			MediaPanelFormData.right = new FormAttachment(100,0);
 			MediaPanelFormData.bottom = new FormAttachment(100,0);
 			mediaPanel.setLayoutData(MediaPanelFormData);
-			
+
 			FormData WebcamPanelFormData = new FormData();
 			WebcamPanelFormData.top = new FormAttachment(0,0);
 			WebcamPanelFormData.left = new FormAttachment(0, 0);
 			WebcamPanelFormData.right = new FormAttachment(100,0);
 			WebcamPanelFormData.bottom = new FormAttachment(100,0);
 			webcamPanel.setLayoutData(WebcamPanelFormData);
-			
+
 			FormData imageLabelFormData = new FormData();
 			imageLabelFormData.top = new FormAttachment(0,0);
 			imageLabelFormData.left = new FormAttachment(0, 0);
 			imageLabelFormData.right = new FormAttachment(100,0);
 			imageLabelFormData.bottom = new FormAttachment(100,0);
 			imageLabel.setLayoutData(imageLabelFormData);
-			
+
 			//Menu Bar
 			MenuBar = new Menu (shell, SWT.BAR);
 
@@ -629,7 +634,7 @@ public class MainShell {
 			Menu toolsSubMenu = new Menu (shell, SWT.DROP_DOWN);
 			//Associate it with the top level File menu
 			toolsItem.setMenu (toolsSubMenu);
-			
+
 			//Tools Compress menu item
 			MenuItem CompressGuideItem = new MenuItem (toolsSubMenu, SWT.PUSH);
 			CompressGuideItem.setText (displayText.getString("MainToolsCompress"));
@@ -644,64 +649,64 @@ public class MainShell {
 			MenuItem ResizeGuideItem = new MenuItem (toolsSubMenu, SWT.PUSH);
 			ResizeGuideItem.setText (displayText.getString("MainToolsResizeImage"));
 			ResizeGuideItem.addSelectionListener(new ResizeGuideListener());
-			
+
 			if (appSettings.getDebug())
 			{
 				//Top Level Debug drop down
 				MenuItem debugItem = new MenuItem (MenuBar, SWT.CASCADE);
 				debugItem.setText (displayText.getString("MainDebug"));
-	
+
 				//Sub Menu for Debug
 				Menu debugSubMenu = new Menu (shell, SWT.DROP_DOWN);
 				//Associate it with the top level File menu
 				debugItem.setMenu (debugSubMenu);
-				
+
 				//Debug Debug Menu Item
-			    final MenuItem debugCheck = new MenuItem(debugSubMenu, SWT.CHECK);
-			    debugCheck.setText(displayText.getString("MainDebugDebug"));
-			    debugCheck.setSelection(appSettings.getDebug());
-			    debugCheck.addListener(SWT.Selection, new Listener() {
-			      public void handleEvent(Event event) {
-			        appSettings.setDebug(debugCheck.getSelection());
-			      }
-			    });			
-				
-			    //Debug Javascript Debug Menu Item
-			    final MenuItem jsdebugCheck = new MenuItem(debugSubMenu, SWT.CHECK);
-			    jsdebugCheck.setText(displayText.getString("MainDebugJava"));
-			    jsdebugCheck.setSelection(appSettings.getJsDebug());
-			    jsdebugCheck.addListener(SWT.Selection, new Listener() {
-			      public void handleEvent(Event event) {
-			        appSettings.setJsDebug(jsdebugCheck.getSelection());
-			      }
-			    });			
-			    //Debug Javascript Debug Menu Error Item
-			    final MenuItem jsdebugErrorCheck = new MenuItem(debugSubMenu, SWT.CHECK);
-			    jsdebugErrorCheck.setText(displayText.getString("MainDebugException"));
-			    jsdebugErrorCheck.setSelection(appSettings.getJsDebugError());
-			    jsdebugErrorCheck.addListener(SWT.Selection, new Listener() {
-			      public void handleEvent(Event event) {
-			        appSettings.setJsDebugError(jsdebugErrorCheck.getSelection());
-			      }
-			    });			
-			    //Debug Javascript Debug Menu Enter Item
-			    final MenuItem jsdebugEnterCheck = new MenuItem(debugSubMenu, SWT.CHECK);
-			    jsdebugEnterCheck.setText(displayText.getString("MainDebugEnter"));
-			    jsdebugEnterCheck.setSelection(appSettings.getJsDebugEnter());
-			    jsdebugEnterCheck.addListener(SWT.Selection, new Listener() {
-			      public void handleEvent(Event event) {
-			        appSettings.setJsDebugEnter(jsdebugEnterCheck.getSelection());
-			      }
-			    });			
-			    //Debug Javascript Debug Menu Exit Item
-			    final MenuItem jsdebugExitCheck = new MenuItem(debugSubMenu, SWT.CHECK);
-			    jsdebugExitCheck.setText(displayText.getString("MainDebugExit"));
-			    jsdebugExitCheck.setSelection(appSettings.getJsDebugExit());
-			    jsdebugExitCheck.addListener(SWT.Selection, new Listener() {
-			      public void handleEvent(Event event) {
-			        appSettings.setJsDebugExit(jsdebugExitCheck.getSelection());
-			      }
-			    });			
+				final MenuItem debugCheck = new MenuItem(debugSubMenu, SWT.CHECK);
+				debugCheck.setText(displayText.getString("MainDebugDebug"));
+				debugCheck.setSelection(appSettings.getDebug());
+				debugCheck.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						appSettings.setDebug(debugCheck.getSelection());
+					}
+				});			
+
+				//Debug Javascript Debug Menu Item
+				final MenuItem jsdebugCheck = new MenuItem(debugSubMenu, SWT.CHECK);
+				jsdebugCheck.setText(displayText.getString("MainDebugJava"));
+				jsdebugCheck.setSelection(appSettings.getJsDebug());
+				jsdebugCheck.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						appSettings.setJsDebug(jsdebugCheck.getSelection());
+					}
+				});			
+				//Debug Javascript Debug Menu Error Item
+				final MenuItem jsdebugErrorCheck = new MenuItem(debugSubMenu, SWT.CHECK);
+				jsdebugErrorCheck.setText(displayText.getString("MainDebugException"));
+				jsdebugErrorCheck.setSelection(appSettings.getJsDebugError());
+				jsdebugErrorCheck.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						appSettings.setJsDebugError(jsdebugErrorCheck.getSelection());
+					}
+				});			
+				//Debug Javascript Debug Menu Enter Item
+				final MenuItem jsdebugEnterCheck = new MenuItem(debugSubMenu, SWT.CHECK);
+				jsdebugEnterCheck.setText(displayText.getString("MainDebugEnter"));
+				jsdebugEnterCheck.setSelection(appSettings.getJsDebugEnter());
+				jsdebugEnterCheck.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						appSettings.setJsDebugEnter(jsdebugEnterCheck.getSelection());
+					}
+				});			
+				//Debug Javascript Debug Menu Exit Item
+				final MenuItem jsdebugExitCheck = new MenuItem(debugSubMenu, SWT.CHECK);
+				jsdebugExitCheck.setText(displayText.getString("MainDebugExit"));
+				jsdebugExitCheck.setSelection(appSettings.getJsDebugExit());
+				jsdebugExitCheck.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						appSettings.setJsDebugExit(jsdebugExitCheck.getSelection());
+					}
+				});			
 			}
 			// Add the menu bar to the shell
 			shell.setMenuBar (MenuBar);
@@ -827,8 +832,8 @@ public class MainShell {
 		} 
 
 	}
-	
-	
+
+
 	class shellCloseListen  extends ShellAdapter {
 		// Clean up stuff when the application closes
 		@Override
@@ -866,8 +871,8 @@ public class MainShell {
 		public void handleEvent(Event event) {
 		}
 	}
-	
-	
+
+
 	//hotkey stuff here
 	class shellKeyEventListener implements Listener {
 		@Override
@@ -875,9 +880,9 @@ public class MainShell {
 			try {
 				logger.trace(event.character + "|" + event.keyCode + "|" + event.keyLocation + "|" + event.stateMask);
 				if (event.keyCode == 13 && (event.widget.getClass().toString().equals("class org.eclipse.swt.browser.Browser")))
-					{
-						event.doit = false;
-					};
+				{
+					event.doit = false;
+				};
 				if (((event.stateMask & SWT.ALT) == SWT.ALT)) {
 					switch (event.character) {
 					/*
@@ -887,7 +892,7 @@ public class MainShell {
 							shell3.setActive();
 						}
 						break;
-						*/
+					 */
 					case 'm' :
 					case 'M' :
 						Rectangle rect = shell.getBounds(); 
@@ -936,7 +941,7 @@ public class MainShell {
 							shell3.setActive();
 						}
 					}
-					*/
+					 */
 				} else {
 					com.snapps.swt.SquareButton hotKeyButton;
 					String key = String.valueOf(event.character);
@@ -963,8 +968,8 @@ public class MainShell {
 			}
 		}
 	}
-	
-	
+
+
 	class VideoRelease implements Runnable {
 		//Do the release of the Video stuff (VLC) on a different thread to prevent it blocking the main UI thread
 		private MediaPlayerFactory mediaPlayerFactoryThread;
@@ -985,14 +990,14 @@ public class MainShell {
 
 		public void setVideoRelease(EmbeddedMediaPlayer mediaPlayer, MediaPlayerFactory mediaPlayerFactory) {
 			try {
-			mediaPlayerFactoryThread = mediaPlayerFactory;
-			mediaPlayerThread = mediaPlayer;
+				mediaPlayerFactoryThread = mediaPlayerFactory;
+				mediaPlayerThread = mediaPlayer;
 			}
 			catch (Exception ex) {
 				logger.error("Video release " + ex.getLocalizedMessage(), ex);
 			}
 		}
-		
+
 	}
 
 	class mediaPanelListener extends ControlAdapter {
@@ -1012,11 +1017,11 @@ public class MainShell {
 		}
 
 	}
-	
-	
+
+
 	class MediaListener extends MediaPlayerEventAdapter {
 		//Video event listener
-		
+
 		//Video has finished
 		@Override
 		public void finished(MediaPlayer mediaPlayer) {
@@ -1049,7 +1054,7 @@ public class MainShell {
 								leftFrame.layout(true);
 							}
 						});
-				*/											
+				 */											
 			}
 			catch (Exception ex) {
 				logger.error(" MediaListener finished " + ex.getLocalizedMessage(), ex);
@@ -1083,7 +1088,7 @@ public class MainShell {
 				logger.error("mediaStateChanged " + e.getLocalizedMessage(), e);
 			}
 		}
-		*/
+		 */
 
 		@Override
 		public void error(MediaPlayer mediaPlayer) {
@@ -1224,7 +1229,7 @@ public class MainShell {
 		}
 
 	}
-	
+
 	class ResizeGuideListener  extends SelectionAdapter {
 		//File CompressGuide from the menu
 		@Override
@@ -1268,8 +1273,8 @@ public class MainShell {
 
 	}
 
-	
-	
+
+
 	//Load the tease
 	public void loadGuide(String fileToLoad) {
 		try {
@@ -1304,10 +1309,10 @@ public class MainShell {
 				logger.trace("Enter Menu Restart");
 				//stop all activity for the current page to prevent timers jumping to a different page
 				stopAll(false);
-		        guide.getFlags().clear();
-		        guide.getSettings().setPage("start");
-		        guide.getSettings().setFlags(comonFunctions.GetFlags(guide.getFlags()));
-		        //guide.getSettings().setScope(null);
+				guide.getFlags().clear();
+				guide.getSettings().setPage("start");
+				guide.getSettings().setFlags(comonFunctions.GetFlags(guide.getFlags()));
+				//guide.getSettings().setScope(null);
 				HashMap<String, Object> scriptVariables = new HashMap<String, Object>();
 				guide.getSettings().setScriptVariables(scriptVariables);
 				guide.getSettings().setScope(null);
@@ -1324,7 +1329,7 @@ public class MainShell {
 		}
 
 	}
-	
+
 
 	class FilePreferencesGuide  extends SelectionAdapter {
 		//File Preferences from the menu
@@ -1371,7 +1376,7 @@ public class MainShell {
 	}
 
 
-	
+
 	class FilePreferences  extends SelectionAdapter {
 		//File Preferences from the menu
 		@Override
@@ -1422,7 +1427,7 @@ public class MainShell {
 		}
 
 	}
-	
+
 	class FileLibraryListener  extends SelectionAdapter {
 		//File Library from menu
 		@Override
@@ -1445,7 +1450,7 @@ public class MainShell {
 		}
 
 	}
-	
+
 	// listener for the control that holds the image, 
 	//will resize the image if the control is resized.
 	class ImageControlAdapter extends ControlAdapter {
@@ -1470,16 +1475,16 @@ public class MainShell {
 						logger.trace("dblImageRatio: " + imageRatio);
 						logger.trace("Lable Height: " + RectImage.height);
 						logger.trace("Lable Width: " + RectImage.width);
-						
+
 						int maxImageScale = (int) imageLabel.getData("maxImageScale");
 						logger.trace("maxImageScale: " + maxImageScale);
 						int maxheight = (int) imageLabel.getData("maxheight");
 						logger.trace("maxheight: " + maxheight);
 						int maxwidth = (int) imageLabel.getData("maxwidth");
 						logger.trace("maxwidth: " + maxwidth);
-						
+
 						imageDimentions = GetNewDimentions(imageRatio, RectImage.height, RectImage.width, appSettings.getImgOffset(), maxImageScale != 0, maxheight, maxwidth);
-						
+
 						//String strHtml = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"><html  xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\" /><title></title><style type=\"text/css\">" + defaultStyle + "</style></head><body><table id=\"wrapper\"><tr><td><img src=\"" + tmpImagePath + "\" height=\"" + newHeight + "\" width=\"" + newWidth + "\" /></td></tr></table></body></html>";
 						if (imgPath.endsWith(".gif")) {
 							tmpImagePath = imgPath;
@@ -1489,15 +1494,15 @@ public class MainShell {
 							BufferedImage img = null;
 							try {
 								ImageIO.setUseCache(false);
-							    img = ImageIO.read(new File(imgPath));
+								img = ImageIO.read(new File(imgPath));
 							} catch (IOException e1) {
 							}
 							if (img.getColorModel().hasAlpha()) {
 								img = comonFunctions.dropAlphaChannel(img);
 							}
 							BufferedImage imagenew =
-									  Scalr.resize(img, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC,
-											  imageDimentions.get("newWidth"), imageDimentions.get("newHeight"), Scalr.OP_ANTIALIAS);
+									Scalr.resize(img, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC,
+											imageDimentions.get("newWidth"), imageDimentions.get("newHeight"), Scalr.OP_ANTIALIAS);
 							String imgType = imgPath.substring(imgPath.length() - 3);
 							String tmpPath = appSettings.getTempDir();
 							File newImage = File.createTempFile("tmpImage", imgType, new File(tmpPath));
@@ -1544,8 +1549,8 @@ public class MainShell {
 		}
 
 	}
-	*/
-	
+	 */
+
 	private static HashMap<String, Integer> GetNewDimentions(double imageRatio, int labelHeight, int labelWidth, double imgOffSet, boolean maxScale, int maxHeight, int maxWidth )
 	{
 		HashMap<String, Integer> returnValue = new HashMap<String, Integer>();
@@ -1648,7 +1653,7 @@ public class MainShell {
 							catch (Exception ex) {
 								logger.error(" shellTimer Update Count Down " + ex.getLocalizedMessage(), ex);
 							}
-							
+
 						}
 					}
 					try {
@@ -1661,13 +1666,13 @@ public class MainShell {
 					catch (Exception ex) {
 						logger.error(" shellTimer Update Clock " + ex.getLocalizedMessage(), ex);
 					}
-					
+
 					try {
 						//check timers
 						if (getTimerCount() > 0) {
-						    Iterator<Entry<String, Timer>> it = timer.entrySet().iterator();
-						    while (it.hasNext()) {
-						        Map.Entry<String, Timer> pair = it.next();
+							Iterator<Entry<String, Timer>> it = timer.entrySet().iterator();
+							while (it.hasNext()) {
+								Map.Entry<String, Timer> pair = it.next();
 								Timer objTimer =  pair.getValue();
 								Calendar calTemp =  objTimer.getTimerEnd();
 								//logger.debug("Timer: " + objTimer.getId() + " End: " + calTemp.getTime());
@@ -1702,9 +1707,9 @@ public class MainShell {
 											} catch (Exception e) {
 												logger.error("displayPage BrwsText Media Directory Exception " + e.getLocalizedMessage(), e);
 											}
-											
+
 											displayText = comonFunctions.substituteTextVars(displayText, guideSettings, userSettings);
-		
+
 											setBrwsText(displayText, "");
 										} catch (Exception e) {
 											logger.error("Timer BrwsText Exception " + e.getLocalizedMessage(), e);
@@ -1715,7 +1720,7 @@ public class MainShell {
 										mainShell.runJscript(javascript, false);
 									}
 								}
-						        //it.remove(); // avoids a ConcurrentModificationException
+								//it.remove(); // avoids a ConcurrentModificationException
 							}
 						}
 					}
@@ -1779,12 +1784,12 @@ public class MainShell {
 			oldImage2.delete();
 			oldImage2 = null;
 		}
-		
+
 		//display an image in the area to the left of the screen
 		HashMap<String, Integer> imageDimentions;
 		imgOverRide = false;
-		
-		
+
+
 		if (imgPath.lastIndexOf(".") == -1)
 		{
 			try {
@@ -1795,7 +1800,7 @@ public class MainShell {
 				String mimeType = con.getContentType();
 				con = null;
 
-				
+
 				switch (mimeType)
 				{
 				case "image/jpeg":
@@ -1838,7 +1843,7 @@ public class MainShell {
 			} catch (IOException e1) {
 			}
 		}
-		
+
 		Image memImage = new Image(myDisplay, imgPath);
 		imageLabel.setData("imgPath", imgPath);
 		try {
@@ -1854,15 +1859,15 @@ public class MainShell {
 			logger.trace("Lable Width: " + RectImage.width);
 			logger.trace("Image Height: " + imgData.height);
 			logger.trace("Image Width: " + imgData.width);
-			
+
 			int maxImageScale = appSettings.getMaxImageScale();
 			int maxheight = (int) (imgData.height * ( (double) (maxImageScale / 100)));
 			int maxwidth = (int) (imgData.width * ((double) (maxImageScale / 100)));
-			
+
 			imageLabel.setData("maxImageScale", maxImageScale);
 			imageLabel.setData("maxheight", maxheight);
 			imageLabel.setData("maxwidth", maxwidth);
-			
+
 			imageDimentions = GetNewDimentions(dblImageRatio, RectImage.height, RectImage.width, appSettings.getImgOffset(), maxImageScale != 0, maxheight, maxwidth);
 
 			if (imgPath.endsWith(".gif")) {
@@ -1938,13 +1943,13 @@ public class MainShell {
 			logger.error("setImageHtml error " + ex.getLocalizedMessage(), ex);
 		}
 	}
-	
+
 	public boolean showWebcam() {
 		//displays the webcam in the area to the left of the screen
 		if (webcamOn) {
 			try {
 				webcam = Webcam.getDefault();
-				
+
 				if (webcam != null)
 				{
 					mainShell.setLeftText("", "");
@@ -1963,14 +1968,14 @@ public class MainShell {
 					webcamRoot.validate();
 					webcamVisible = true;
 					logger.debug("MainShell playVideo: ShowWebcam");
-					
+
 				}
 				else
 				{
 					mainShell.setLeftText("No Webcam detected", "");
 					Webcam.getDiscoveryService().stop();
 				}
-				
+
 			} catch (Exception e) {
 				logger.error("showWebcam " + e.getLocalizedMessage(), e);		
 			}
@@ -2015,7 +2020,7 @@ public class MainShell {
 		private SwtEmbeddedMediaPlayer mediaPlayer;
 		private String video;
 		private int volume;
-		
+
 		@Override
 		public void run() {
 			try {
@@ -2032,22 +2037,22 @@ public class MainShell {
 						mediaVolume = (int) ((double) mediaVolume * ((double) volume / (double) 100));
 					}
 				}
-				
+
 				mediaPlayer.setVolume(mediaVolume);
 				mediaPlayer.setPlaySubItems(true);
 				if (videoStartAt == 0 && videoStopAt == 0 && videoLoops == 0) {
 					mediaPlayer.playMedia(video);
 				} else {
-					 List<String> vlcArgs = new ArrayList<String>();
-					 if (videoStartAt > 0) {
-						 vlcArgs.add("start-time=" + videoStartAt);
-					 }
-					 if (videoStopAt > 0) {
-						 vlcArgs.add("stop-time=" + videoStopAt);
-					 }
-					 if (videoLoops > 0) {
-						 vlcArgs.add("input-repeat=" + videoLoops);
-					 }
+					List<String> vlcArgs = new ArrayList<String>();
+					if (videoStartAt > 0) {
+						vlcArgs.add("start-time=" + videoStartAt);
+					}
+					if (videoStopAt > 0) {
+						vlcArgs.add("stop-time=" + videoStopAt);
+					}
+					if (videoLoops > 0) {
+						vlcArgs.add("input-repeat=" + videoLoops);
+					}
 					myDisplay.syncExec(
 							new Runnable() {
 								public void run(){
@@ -2057,8 +2062,8 @@ public class MainShell {
 									leftFrame.layout(true);
 								}
 							});											
-					 mediaPlayer.playMedia(video, vlcArgs.toArray(new String[vlcArgs.size()]));
-						//run on the main UI thread
+					mediaPlayer.playMedia(video, vlcArgs.toArray(new String[vlcArgs.size()]));
+					//run on the main UI thread
 				}
 			} catch (Exception e) {
 				logger.error("VideoPlay run " + e.getLocalizedMessage(), e);		
@@ -2083,15 +2088,15 @@ public class MainShell {
 		}
 
 	}
-	
+
 	public void clearImage() {
 		//imageLabel.setImage(null);
 		String strHTML = leftHTML.replace("DefaultStyle", defaultStyle + " body { overflow:hidden }");
 		imageLabel.setText(strHTML, true);
 	}
 
-	
-	
+
+
 	public void playAudio(String audio, int startAt, int stopAt, int loops, String target, String jscript, String scriptVar, int volume) {
 		// run audio on another thread
 		try {
@@ -2107,7 +2112,32 @@ public class MainShell {
 			logger.error("playAudio " + e.getLocalizedMessage(), e);		
 		}
 	}
+
+	public void playEstim(String estim, int startAt, int stopAt, int loops, String target, String jscript, String scriptVar, String command) {
+		// if command is set send it
 	
+		if (!("".equals(command))) {
+			logger.trace("playEstim estimCommand");
+			estimAPI.execute(command);
+		}
+		else {
+			// run estim on another thread
+			try {
+				if (estimPlayer != null) {
+					estimPlayer.estimStop();
+					logger.trace("playEstim estimStop");
+				}
+				estimPlayer = new EstimPlayer(estim, startAt, stopAt, loops, target, mainShell, jscript, scriptVar);
+				threadEstimPlayer = new Thread(estimPlayer, "estimPlayer");
+				threadEstimPlayer.setName("threadEstimPlayer");
+				threadEstimPlayer.start();
+			} catch (Exception e) {
+				logger.error("playAudio " + e.getLocalizedMessage(), e);		
+			}
+		}
+
+	}
+
 	public void setBrwsText(String brwsText, String overRideStyle) {
 		//set HTML to be displayed in the browser control to the right of the screen
 		if (overRideStyle.equals("")) {
@@ -2122,9 +2152,9 @@ public class MainShell {
 				try {
 					//copy text to clip board for use in TTS
 					String htmlString = brwsText.replaceAll("\\<.*?\\>", " ");
-				    StringSelection stringSelection = new StringSelection(htmlString);
-				    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				    clipboard.setContents(stringSelection, stringSelection);
+					StringSelection stringSelection = new StringSelection(htmlString);
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clipboard.setContents(stringSelection, stringSelection);
 				} catch (Exception e2) {
 					logger.error("copy to clip board " + e2.getLocalizedMessage(), e2);		
 				}
@@ -2148,7 +2178,7 @@ public class MainShell {
 			this.brwsText.setText(strHTML);
 		}
 	}
-	
+
 	public void setLeftText(String brwsText, String overRideStyle) {
 		//set HTML to be displayed in the browser control to the left of the screen
 		if (overRideStyle.equals("")) {
@@ -2163,9 +2193,9 @@ public class MainShell {
 				try {
 					//copy text to clip board for use in TTS
 					String htmlString = brwsText.replaceAll("\\<.*?\\>", " ");
-				    StringSelection stringSelection = new StringSelection(htmlString);
-				    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				    clipboard.setContents(stringSelection, stringSelection);
+					StringSelection stringSelection = new StringSelection(htmlString);
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clipboard.setContents(stringSelection, stringSelection);
 				} catch (Exception e2) {
 					logger.error("copy to clip board " + e2.getLocalizedMessage(), e2);		
 				}
@@ -2200,19 +2230,19 @@ public class MainShell {
 
 	public void removeButtons() {
 		//remove all the buttons displayed for the previous page
-        try {
+		try {
 			for (Control kid : btnComp.getChildren()) {
 				Image bkgrndImage = kid.getBackgroundImage();
 				if (bkgrndImage != null) {
 					bkgrndImage.dispose();
 				}
-			    kid.dispose();
-			  }
+				kid.dispose();
+			}
 		} catch (Exception e) {
 			logger.error("removeButtons " + e.getLocalizedMessage(), e);		
 		}
 	}
-	
+
 	public void addDelayButton(Guide guide) {
 		//add a delay button
 		//used when debug is on to simulate the delay without actually waiting for it
@@ -2240,7 +2270,7 @@ public class MainShell {
 			logger.error("addDelayButton " + e.getLocalizedMessage(), e);		
 		}
 	}
-	
+
 	public void addButton(Button button, String javascript) {
 		//add a normal button to the screen 
 		String strBtnTarget;
@@ -2261,7 +2291,7 @@ public class MainShell {
 				}
 			}
 			com.snapps.swt.SquareButton btnDynamic = new com.snapps.swt.SquareButton(btnComp, SWT.PUSH );
-			
+
 			int fntHeight = 0;
 			try {
 				fntHeight = Integer.parseInt(button.getFontHeight());
@@ -2280,10 +2310,10 @@ public class MainShell {
 					if (button.getFontName() != "") {
 						fontData[0].setName(button.getFontName());
 					}
-					
+
 					final Font newFont = new Font(myDisplay, fontData);
 					btnDynamic.setFont(newFont);
-	
+
 					// Since you created the font, you must dispose it
 					btnDynamic.addDisposeListener(new DisposeListener() {
 						@Override
@@ -2296,19 +2326,19 @@ public class MainShell {
 			catch (Exception e) {
 				logger.error("addButton set font" + e.getLocalizedMessage(), e);
 			}
-			
+
 			try {
 				org.eclipse.swt.graphics.Color bgColor1 = button.getbgColor1();
 				org.eclipse.swt.graphics.Color bgColor2 = button.getbgColor2();
 				org.eclipse.swt.graphics.Color fontColor = button.getfontColor();
-				
+
 				btnDynamic.setDefaultColors(bgColor1, bgColor2, btnDynamic.getBackground(), fontColor);
 			}
 			catch (Exception e) {
 				logger.error("addButton set colors" + e.getLocalizedMessage(), e);
 			}
 
-			
+
 			btnDynamic.setText(strBtnText);
 			if (!strBtnImage.equals("")){
 				btnDynamic.setBackgroundImage(new Image(myDisplay, strBtnImage));
@@ -2333,7 +2363,7 @@ public class MainShell {
 			btnDynamic.setData("scriptVar", button.getScriptVar());
 			btnDynamic.setData("javascript", javascript);
 			logger.debug("displayPage Button Text " + strBtnText + " Target " + strBtnTarget + " Set " + strButtonSet + " UnSet " + strButtonUnSet);
-			
+
 			String hotKey = button.getHotKey();
 			if (!hotKey.equals("")) {
 				hotKeys.put(hotKey, btnDynamic);
@@ -2351,9 +2381,9 @@ public class MainShell {
 				btnDynamic.setData("webcamFile", webcamButton.get_destination());
 				switch (webcamButton.get_type())
 				{
-					case "Capture":
-						btnDynamic.addSelectionListener(new WebcamCaptureListener());
-						break;
+				case "Capture":
+					btnDynamic.addSelectionListener(new WebcamCaptureListener());
+					break;
 				}
 			}
 			else
@@ -2364,14 +2394,14 @@ public class MainShell {
 		} catch (Exception e) {
 			logger.error("addButton " + e.getLocalizedMessage(), e);		
 		}
-		
+
 	}
 
-    // Click event code for the dynamic buttons
+	// Click event code for the dynamic buttons
 	class DynamicButtonListner extends SelectionAdapter {
 		public void widgetSelected(SelectionEvent event) {
 			try {
-				
+
 				logger.trace("Enter DynamicButtonListner");
 				String strTag;
 				com.snapps.swt.SquareButton btnClicked;
@@ -2416,13 +2446,13 @@ public class MainShell {
 
 		return image;
 	}	
-	
-	
+
+
 	class WebcamCaptureListener extends DynamicButtonListner
 	{
 		public void widgetSelected(SelectionEvent event) {
 			try {
-				
+
 				logger.trace("Enter WebcamCaptureListener");
 				String strFile;
 				com.snapps.swt.SquareButton btnClicked;
@@ -2431,7 +2461,7 @@ public class MainShell {
 				if (!comonFunctions.CanCreateFile(strFile)) {
 					strFile = comonFunctions.getMediaFullPath(strFile, appSettings.getFileSeparator(), appSettings, guide);
 				}
-				
+
 				try
 				{
 					BufferedImage image = webcam.getImage();
@@ -2440,7 +2470,7 @@ public class MainShell {
 				catch (Exception ex) {
 					logger.error(" WebcamCaptureListener take and save image " + ex.getLocalizedMessage(), ex);
 				}
-				
+
 				super.widgetSelected(event);
 			}
 			catch (Exception ex) {
@@ -2449,11 +2479,11 @@ public class MainShell {
 			logger.trace("Exit WebcamCaptureListener");
 		}
 	}
-	
+
 	public void runJscript(String function, boolean pageLoading) {
 		runJscript(function, null, pageLoading);
 	}
-	
+
 	//run the javascript function passed 
 	public void runJscript(String function, OverRide overRide, boolean pageLoading ) {
 		try {
@@ -2663,17 +2693,25 @@ public class MainShell {
 		getFormFields();
 		mainLogic.displayPage(target, false, guide, mainShell, appSettings, userSettings, guideSettings, debugShell);
 	}
-	
+
 	public void stopMetronome() {
 		metronome.metronomeStop();
 	}
-	
+
 	public void stopAudio() {
 		if (audioPlayer != null) {
 			audioPlayer.audioStop();
 		}
 		audioPlayer = null;
 		threadAudioPlayer = null;
+	}
+	
+	public void stopEstim() {
+		if (estimPlayer != null) {
+			estimPlayer.estimStop();
+		}
+		estimPlayer = null;
+		threadEstimPlayer = null;
 	}
 
 	public void stopWebcam(boolean shellClosing)
@@ -2685,7 +2723,7 @@ public class MainShell {
 			webcamVisible = false;
 		}
 	}
-	
+
 	public void stopVideo(boolean shellClosing) {
 		if (videoOn) {
 			try {
@@ -2712,7 +2750,7 @@ public class MainShell {
 			}
 		}
 	}
-	
+
 	class VideoStop implements Runnable {
 		private SwtEmbeddedMediaPlayer mediaPlayer;
 		private boolean shellClosing;
@@ -2737,9 +2775,9 @@ public class MainShell {
 				logger.error(" MainShell VideoStop run: " + e.getLocalizedMessage(), e);
 			}
 		}
-		
+
 	}
-	
+
 	public void stopDelay() {
 		try {
 			calCountDown = null;
@@ -2766,19 +2804,19 @@ public class MainShell {
 			logger.error(" stopbuttons " + ex.getLocalizedMessage(), ex);
 		}
 		try {
-		stopDelay();
+			stopDelay();
 		}
 		catch (Exception ex) {
 			logger.error(" stopDelay " + ex.getLocalizedMessage(), ex);
 		}
 		try {
-		stopMetronome();
+			stopMetronome();
 		}
 		catch (Exception ex) {
 			logger.error(" stopMetronome " + ex.getLocalizedMessage(), ex);
 		}
 		try {
-		stopAudio();
+			stopAudio();
 		}
 		catch (Exception ex) {
 			logger.error(" stopAudio " + ex.getLocalizedMessage(), ex);
@@ -2834,18 +2872,18 @@ public class MainShell {
 	public int getTimerCount() {
 		return timer.size();
 	}
-	
+
 	private void timerReset() {
 		timer = new HashMap<String, Timer>();
 	}
-	
+
 	public void resetTimer(String id, int delay) {
 		Timer objTimer = timer.get(id);
 		Calendar timCountDown = Calendar.getInstance();
 		timCountDown.add(Calendar.SECOND, delay);
 		objTimer.setTimerEnd(timCountDown);		
 	}
-	
+
 	public void updateJConsole(String logText) {
 		debugShell.updateJConsole(logText);
 	}
@@ -2857,12 +2895,12 @@ public class MainShell {
 	public void refreshVars() {
 		debugShell.refreshVars();
 	}
-	
+
 	public GuideSettings getGuideSettings() {
 		return guideSettings;
-		
+
 	}
-	
+
 	public void showDebug() {
 		debugShell.showDebug();
 	}
@@ -2872,25 +2910,25 @@ public class MainShell {
 	}
 
 
-    private static VideoSurfaceAdapter getVideoSurfaceAdapter() {
-        VideoSurfaceAdapter videoSurfaceAdapter;
-        if(RuntimeUtil.isNix()) {
-            videoSurfaceAdapter = new LinuxVideoSurfaceAdapter();
-        }
-        else if(RuntimeUtil.isWindows()) {
-            videoSurfaceAdapter = new WindowsVideoSurfaceAdapter();
-        }
-        else if(RuntimeUtil.isMac()) {
-            videoSurfaceAdapter = new MacVideoSurfaceAdapter();
-        }
-        else {
-            throw new RuntimeException("Unable to create a media player - failed to detect a supported operating system");
-        }
-        return videoSurfaceAdapter;
-    }
+	private static VideoSurfaceAdapter getVideoSurfaceAdapter() {
+		VideoSurfaceAdapter videoSurfaceAdapter;
+		if(RuntimeUtil.isNix()) {
+			videoSurfaceAdapter = new LinuxVideoSurfaceAdapter();
+		}
+		else if(RuntimeUtil.isWindows()) {
+			videoSurfaceAdapter = new WindowsVideoSurfaceAdapter();
+		}
+		else if(RuntimeUtil.isMac()) {
+			videoSurfaceAdapter = new MacVideoSurfaceAdapter();
+		}
+		else {
+			throw new RuntimeException("Unable to create a media player - failed to detect a supported operating system");
+		}
+		return videoSurfaceAdapter;
+	}
 
 	public void setGuideSettings(GuideSettings guideSettings) {
 		this.guideSettings = guideSettings;
 	}	
-	
+
 }

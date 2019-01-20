@@ -20,6 +20,7 @@ import org.guideme.guideme.model.Audio;
 import org.guideme.guideme.model.Button;
 import org.guideme.guideme.model.Chapter;
 import org.guideme.guideme.model.Delay;
+import org.guideme.guideme.model.Estim;
 import org.guideme.guideme.model.Guide;
 import org.guideme.guideme.model.Image;
 import org.guideme.guideme.model.LoadGuide;
@@ -68,6 +69,7 @@ public class XmlGuideReader {
 		Image, 
 		Audio, 
 		Video, 
+		Estim,
 		Webcam, 
 		Delay, 
 		Timer, 
@@ -270,6 +272,46 @@ public class XmlGuideReader {
 							logger.trace("loadXML " + PresName + " Audio " + strId+ "|" + strStartAt+ "|" + strStopAt+ "|" + strTarget+ "|" + javascript+ "|" + ifSet+ "|" + ifNotSet);
 						} catch (Exception e1) {
 							logger.error("loadXML " + PresName + " Audio Exception " + e1.getLocalizedMessage(), e1);
+						}
+						break;
+					case Estim:
+						try {
+							String strId;
+							String strStartAt;
+							String strStopAt;
+							String strTarget;
+							String scriptVar;
+							String strCommand;
+							strTarget = reader.getAttributeValue(null, "target");
+							if (strTarget == null) strTarget = "";
+							strStartAt = reader.getAttributeValue(null, "start-at");
+							if (strStartAt == null) strStartAt = "";
+							strStopAt = reader.getAttributeValue(null, "stop-at");
+							if (strStopAt == null) strStopAt = "";
+							strId = reader.getAttributeValue(null, "id");
+							ifSet = reader.getAttributeValue(null, "if-set");
+							if (ifSet == null) ifSet = "";
+							ifNotSet = reader.getAttributeValue(null, "if-not-set"); 
+							if (ifNotSet == null) ifNotSet = "";
+							String loops = reader.getAttributeValue(null, "loops"); 
+							if (loops == null) loops = "0";
+							String javascript = reader.getAttributeValue(null, "onTriggered");
+							if (javascript == null) javascript = "";
+							ifBefore = reader.getAttributeValue(null, "if-before");
+							if (ifBefore == null) ifBefore = "";
+							ifAfter = reader.getAttributeValue(null, "if-after");
+							if (ifAfter == null) ifAfter = "";
+							scriptVar = reader.getAttributeValue(null, "scriptvar");
+							if (scriptVar == null) scriptVar = "";
+							strCommand= reader.getAttributeValue(null, "command");
+							if (strCommand == null) strCommand = "";
+							
+
+							Estim estim = new Estim(strId, strStartAt, strStopAt, strTarget, ifSet, ifNotSet, "", "", loops, javascript, ifAfter, ifBefore, scriptVar, strCommand);
+							page.addEstim(estim);
+							logger.trace("loadXML " + PresName + " Estim " + strId+ "|" + strStartAt+ "|" + strStopAt+ "|" + strTarget+ "|" + javascript+ "|" + ifSet+ "|" + ifNotSet + "|" + strCommand);
+						} catch (Exception e1) {
+							logger.error("loadXML " + PresName + " Estim Exception " + e1.getLocalizedMessage(), e1);
 						}
 						break;
 					case Author:

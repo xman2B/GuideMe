@@ -19,6 +19,7 @@ public class Page {
 	private ArrayList<LoadGuide> loadGuide = new ArrayList<LoadGuide>();
 	private ArrayList<Audio> audio = new ArrayList<Audio>();
 	private ArrayList<Metronome> metronome = new ArrayList<Metronome>();
+	private ArrayList<Estim> estim = new ArrayList<Estim>();
 	private String ifSet;
 	private String ifNotSet;
 	private LocalTime ifBefore; //Time of day must be before this time
@@ -146,6 +147,15 @@ public class Page {
 	
 	public void addMetronome(Metronome metronome) {
 		this.metronome.add(metronome);
+	}
+	
+	public Estim getEstim(int estimIndex) {
+		return estim.get(estimIndex);
+	}
+	
+	public void addEstim(Estim estim) {
+		this.estim.add(estim);
+		
 	}
 
 	public String getId() {

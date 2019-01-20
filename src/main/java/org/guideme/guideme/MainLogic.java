@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.guideme.guideme.model.Audio;
 import org.guideme.guideme.model.Button;
 import org.guideme.guideme.model.Delay;
+import org.guideme.guideme.model.Estim;
 import org.guideme.guideme.model.Timer;
 import org.guideme.guideme.model.Guide;
 import org.guideme.guideme.model.Image;
@@ -196,6 +197,8 @@ public class MainLogic {
 			}
 
 			if (!reDisplay) {
+				//Estim
+				ProcessEstim(objCurrPage, guide, mainShell, fileSeparator, appSettings);
 				// Audio / Metronome
 				blnMetronome = ProcessMetronome(objCurrPage, guide, mainShell);
 				if (!blnMetronome) {
@@ -848,6 +851,62 @@ public class MainLogic {
 			}
 		} catch (Exception e) {
 			logger.error("displayPage Audio Exception " + e.getLocalizedMessage(), e);
+		}
+		
+	}
+	
+	private void ProcessEstim(Page objCurrPage, Guide guide, MainShell mainShell, String fileSeparator, AppSettings appSettings)
+	{
+		boolean blnEstim = false;
+		Estim objEstim = overRide.getEstim();
+		try {
+			if (objEstim != null) {
+				blnEstim = true;
+			} else {
+				if (objCurrPage.getAudioCount() > 0) {
+					for (int i2 = 0; i2 < objCurrPage.getAudioCount(); i2++) {
+						objEstim = objCurrPage.getEstim(i2);
+						if (objEstim.canShow(guide.getFlags())) {
+							blnEstim = true;
+							break;
+						}
+					}
+				}
+			}
+			if (blnEstim) {
+				int intAudioLoops;
+				String strAudio;
+				String strAudioTarget;
+				String strIntAudio = objEstim.getRepeat();
+				if (strIntAudio.equals("")) {
+					intAudioLoops = 0;
+				} else {
+					intAudioLoops = Integer.parseInt(strIntAudio);
+				}
+				strAudio = objEstim.getId();
+				logger.debug("displayPage Audio " + strAudio);
+				String strStartAt = objEstim.getStartAt();
+				int startAtSeconds;
+				if (!strStartAt.equals("")) {
+					startAtSeconds = comonFunctions.getMilisecFromTime(strStartAt) / 1000;
+				} else {
+					startAtSeconds = 0;
+				}
+				String strStopAt = objEstim.getStopAt();
+				int stopAtSeconds;
+				if (!strStopAt.equals("")) {
+					stopAtSeconds = comonFunctions.getMilisecFromTime(strStopAt) / 1000;
+				} else {
+					stopAtSeconds = 0;
+				}
+
+				//String imgPath = comonFunctions.getMediaFullPath(strAudio, fileSeparator, appSettings, guide);
+				strAudioTarget = objEstim.getTarget();
+				mainShell.playEstim("",startAtSeconds, stopAtSeconds, intAudioLoops, strAudioTarget, objEstim.getJscript(), objEstim.getScriptVar(), objEstim.getCommand());
+				logger.debug("displayPage Estim target " + strAudioTarget);
+			}
+		} catch (Exception e) {
+			logger.error("displayPage Estim Exception " + e.getLocalizedMessage(), e);
 		}
 		
 	}
