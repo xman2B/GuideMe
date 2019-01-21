@@ -30,12 +30,10 @@
 			<id>Redhat GA</id>
 			<url>https://maven.repository.redhat.com/ga/</url>
 		</repository>
-		<repositories>
-	<repository>
-		<id>maven-eclipse-repo</id>
-		<url>http://maven-eclipse.github.io/maven</url>
-	</repository>
-</repositories>
+		<repository>
+			<id>maven-eclipse-repo</id>
+			<url>http://maven-eclipse.github.io/maven</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
